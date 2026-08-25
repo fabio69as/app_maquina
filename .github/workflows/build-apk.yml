@@ -30,6 +30,22 @@ jobs:
           cp -r temp_scaffold/android ./android
           rm -rf temp_scaffold
 
+      - name: Forzar compileSdkVersion 34 en todos los modulos
+        run: |
+          cat >> android/build.gradle << 'EOF'
+
+          subprojects {
+              afterEvaluate { project ->
+                  if (project.hasProperty('android')) {
+                      project.android {
+                          compileSdkVersion 34
+                      }
+                  }
+              }
+          }
+          EOF
+          cat android/build.gradle
+
       - name: Agregar permisos de Bluetooth al manifest
         run: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
