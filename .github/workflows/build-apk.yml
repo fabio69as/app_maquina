@@ -30,27 +30,6 @@ jobs:
           cp -r temp_scaffold/android ./android
           rm -rf temp_scaffold
 
-      - name: Forzar compileSdkVersion 34 en todos los modulos
-        run: |
-          cat >> android/build.gradle << 'EOF'
-
-          subprojects { subproject ->
-              def applyFix = {
-                  if (subproject.hasProperty('android')) {
-                      subproject.android {
-                          compileSdkVersion 34
-                      }
-                  }
-              }
-              if (subproject.state.executed) {
-                  applyFix()
-              } else {
-                  subproject.afterEvaluate { applyFix() }
-              }
-          }
-          EOF
-          cat android/build.gradle
-
       - name: Agregar permisos de Bluetooth al manifest
         run: |
           MANIFEST=android/app/src/main/AndroidManifest.xml
@@ -64,6 +43,19 @@ jobs:
 
       - name: Instalar dependencias
         run: flutter pub get
+
+      - name: Parchear compileSdkVersion del plugin flutter_bluetooth_serial
+        run: |
+          PLUGIN_GRADLE=$(find "${PUB_CACHE:-$HOME/.pub-cache}" -path "*flutter_bluetooth_serial-0.4.0/android/build.gradle" | head -n 1)
+          echo "Archivo encontrado: $PLUGIN_GRADLE"
+          if [ -z "$PLUGIN_GRADLE" ]; then
+            echo "No se encontro el build.gradle del plugin"
+            exit 1
+          fi
+          cat "$PLUGIN_GRADLE"
+          echo "----- Aplicando parche -----"
+          sed -i -E 's/compileSdkVersion [0-9]+/compileSdkVersion 34/' "$PLUGIN_GRADLE"
+          cat "$PLUGIN_GRADLE"
 
       - name: Compilar APK
         run: flutter build apk --release
