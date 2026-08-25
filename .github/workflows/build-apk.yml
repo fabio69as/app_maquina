@@ -34,13 +34,18 @@ jobs:
         run: |
           cat >> android/build.gradle << 'EOF'
 
-          subprojects {
-              afterEvaluate { project ->
-                  if (project.hasProperty('android')) {
-                      project.android {
+          subprojects { subproject ->
+              def applyFix = {
+                  if (subproject.hasProperty('android')) {
+                      subproject.android {
                           compileSdkVersion 34
                       }
                   }
+              }
+              if (subproject.state.executed) {
+                  applyFix()
+              } else {
+                  subproject.afterEvaluate { applyFix() }
               }
           }
           EOF
