@@ -1,0 +1,54 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el codigo
+        uses: actions/checkout@v4
+
+      - name: Instalar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Instalar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      - name: Generar carpeta android (plataforma nativa)
+        run: |
+          flutter create --platforms=android --project-name mh_control temp_scaffold
+          cp -r temp_scaffold/android ./android
+          rm -rf temp_scaffold
+
+      - name: Agregar permisos de Bluetooth al manifest
+        run: |
+          MANIFEST=android/app/src/main/AndroidManifest.xml
+          sed -i '/<manifest /a\
+              <uses-permission android:name="android.permission.BLUETOOTH" />\
+              <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />\
+              <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />\
+              <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />\
+              <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />' "$MANIFEST"
+          cat "$MANIFEST"
+
+      - name: Instalar dependencias
+        run: flutter pub get
+
+      - name: Compilar APK
+        run: flutter build apk --release
+
+      - name: Subir APK como resultado descargable
+        uses: actions/upload-artifact@v4
+        with:
+          name: mh-control-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
