@@ -1,0 +1,21 @@
+name: mh_control
+description: Control Bluetooth para maquina hiladora (ESP32 + HC-05)
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_bluetooth_serial: ^0.4.0
+  permission_handler: ^11.3.1
+
+dev_dependencies:
+  flutter:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
